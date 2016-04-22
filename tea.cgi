@@ -129,9 +129,11 @@ sub anatomySoba {
       my $time = time;
       my $tempfile     = '/tmp/hyperGeo/hyperGeo' . $time;
       my $tempOutFile  = '/tmp/hyperGeo/hyperGeo' . $time . '.txt';
-      my $tempOutUrl   = '../data/hyperGeo/hyperGeo' . $time . '.txt';
+#       my $tempOutUrl   = '../data/hyperGeo/hyperGeo' . $time . '.txt';	# changed data to not be in other parent directory
+      my $tempOutUrl   = 'data/hyperGeo/hyperGeo' . $time . '.txt';
       open (OUT, ">$tempOutFile") or die "Cannot open $tempOutFile : $!";
-      my $tempImageUrl = '../data/hyperGeo/hyperGeo' . $time . '.svg';
+#       my $tempImageUrl = '../data/hyperGeo/hyperGeo' . $time . '.svg';	# changed data to not be in other parent directory
+      my $tempImageUrl = 'data/hyperGeo/hyperGeo' . $time . '.svg';
       open (TMP, ">$tempfile") or die "Cannot open $tempfile : $!";
 #       print TMP qq(gene,reads\n);
       foreach my $gene (@goodGene) { print TMP qq($gene\n); }
