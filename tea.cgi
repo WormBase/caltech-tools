@@ -28,20 +28,9 @@ sub process {
   my $action;                   # what user clicked
   unless ($action = $query->param('action')) { $action = 'none'; }
 
-#   if ($action eq 'Tree') { &dag(); }
-#     elsif ($action eq 'showGenes')                  { &showGenes();             }
-#     elsif ($action eq 'queryChildren')              { &queryChildren();         }
-#     elsif ($action eq 'annotSummaryGraph')          { &annotSummaryGraph();     }
-#     elsif ($action eq 'annotSummaryCytoscape')      { &annotSummaryCytoscape(); }
-#     elsif ($action eq 'annotSummaryJson')           { &annotSummaryJson();      }	# temporarily keep this for the live www.wormbase going through the fake phenotype_graph_json widget
-#     elsif ($action eq 'annotSummaryJsonp')          { &annotSummaryJsonp();     }	# new jsonp widget to get directly from .wormbase without fake widget
   if ($action eq 'anatomySobaInput')           { &anatomySobaInput();      }
-    elsif ($action eq 'HGE Analyze List')           { &anatomySoba('textarea'); }
-    elsif ($action eq 'HGE Analyze File')           { &anatomySoba('file');     }
-#     elsif ($action eq 'getWithPost')                { &getWithPost();           }	# test getting data with post, can delete later
-
-#     elsif ($action eq 'showInferredGenes') { &showInferredGenes(); }	# combined into the single &showGenes();
-#     elsif ($action eq 'showDirectGenes') {   &showDirectGenes();   }	# combined into the single &showGenes();
+    elsif ($action eq 'HGE Analyze List')      { &anatomySoba('textarea'); }
+    elsif ($action eq 'HGE Analyze File')      { &anatomySoba('file');     }
     else { &anatomySobaInput(); }				# no action, show dag by default
 } # sub process
 
@@ -51,8 +40,7 @@ sub anatomySobaInput {
   print qq(Enter list of genes here<br/>);
   print qq(<textarea name="genelist" rows="20" cols="60"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
-  print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);
-#   print qq(<input Type="checkbox" name="calculateLcaNodes" Value="calculateLcaNodes">Calculate LCA Nodes<br/>\n);
+#   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   print qq(<input type="submit" name="action" value="HGE Analyze List"><br/><br/>\n);
   print qq(Upload a file with gene names :<br/>);
   print qq(<input type="file" name="geneNamesFile" /><br/>);
@@ -68,7 +56,7 @@ sub anatomySoba {
 
   my ($var, $datatype)          = &getHtmlVar($query, 'datatype');
 #   ($var, my $showProcessTimes)  = &getHtmlVar($query, 'showProcessTimes');
-  ($var, my $convertGeneToId)   = &getHtmlVar($query, 'convertGeneToId');
+#   ($var, my $convertGeneToId)   = &getHtmlVar($query, 'convertGeneToId');	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   ($var, my $calculateLcaNodes) = &getHtmlVar($query, 'calculateLcaNodes');
 #   my ($var, $download)    = &getHtmlVar($query, 'download');
   unless ($datatype) { $datatype = 'anatomy'; }			# later will need to change based on different datatypes
@@ -76,7 +64,6 @@ sub anatomySoba {
 #   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Loading dictionary"); print qq($message<br/>\n); }
 
 # python3  /home/raymond/local/src/git/TissueEnrichmentAnalysis/hypergeometricTests.py  /home/raymond/local/src/git/dictionary_generator/anat_dict.csv  /home/raymond/local/src/git/TissueEnrichmentAnalysis/input/SCohen_daf22.csv -p -s -t "BLAH"
-
 
   my %dict;
   my $dictFile = '/home/raymond/local/src/git/dictionary_generator/anat_dict.csv';
@@ -98,6 +85,11 @@ sub anatomySoba {
       while ( <$upload_filehandle> ) { $genelist .= $_; }
     }
   if ($genelist =~ m/,/) { $genelist =~ s/,/ /g; }
+  my (@names) = split/\s+/, $genelist;
+  my $hasNonWBGene = 0;
+  foreach (@names) { if ($_ !~ m/WBGene/i) { $hasNonWBGene++; } }
+  my $convertGeneToId = 0;
+  if ($hasNonWBGene) { $convertGeneToId++; }
 
 #   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Getting postgres gene name mappings"); print qq($message<br/>\n); }
   my %geneNameToId; my %geneIdToName;
@@ -110,7 +102,6 @@ sub anatomySoba {
 #   my %geneAnatomy; my %anatomyGene;
 
 #   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Processing user genes for validity"); print qq($message<br/>\n); }
-  my (@names) = split/\s+/, $genelist;
   unless ($convertGeneToId) { foreach my $name (@names) { $geneNameToId{lc($name)} = $name; $geneIdToName{$name} = $name; } }
   my @invalidGene; my @nodataGene; my @goodGene; 
   foreach my $name (@names) {
@@ -155,36 +146,20 @@ sub anatomySoba {
 #       my $th = join"</th><th>", @header;
       if (scalar @hyperData > 0) {
 #           print qq(<table><tr><th>$th</th></tr>\n);
-        print qq(<table border="1" style="border-spacing: 0;">);  
-        foreach my $line (@hyperData) {
-          next if ($line =~ m/Executing script/);
-          if ($line) {
-            print OUT qq($line\n);
-            $line =~ s|\t|</td><td>|g;
-            if ($line =~ m/(WBbt:\d+)/) { 
-              my $wbbt = $1;
-              my $url = 'http://www.wormbase.org/species/all/anatomy_term/' .$wbbt . '#013--10';
-              $line =~ s/$wbbt/<a href="$url" target="_blank">$wbbt<\/a>/; }
-            print qq(<tr><td align="right">$line</td></tr>);
-          }
-        } # foreach my $line (@hyperData)
-        print qq(</table>);  
-
-#           my %sort;
-#           foreach my $line (@hyperData) {
-#             my ($name, $wbbt, $value) = $line =~ m/^(.*?)\((WBbt:.*?)\),([^,]*?)$/;
-#             my $url = 'http://www.wormbase.org/species/all/anatomy_term/' .$wbbt . '#013--10';
-#             $sort{$value}{$name} = $url;
-#           } # foreach my $line (@hyperData)
-#           foreach my $value (sort {$a<=>$b} keys %sort) {
-#             foreach my $name (sort keys %{ $sort{$value} }) {
-#               my $url  = $sort{$value}{$name};
-#               my $link = qq(<a href="$url" target="_blank">$name</a>);
-# #               print qq($name,$value<br/>);
-#               print qq(<tr><td>$link</td><td>$value</td></tr>);
-#             } # foreach my $name (sort keys %{ $sort{$value} })
-#           } # foreach my $value (sort keys %sort)
-#           print qq(</table>\n);
+          print qq(<table border="1" style="border-spacing: 0;">);  
+          foreach my $line (@hyperData) {
+            next if ($line =~ m/Executing script/);
+            if ($line) {
+              print OUT qq($line\n);
+              $line =~ s|\t|</td><td>|g;
+              if ($line =~ m/(WBbt:\d+)/) { 
+                my $wbbt = $1;
+                my $url = 'http://www.wormbase.org/species/all/anatomy_term/' .$wbbt . '#013--10';
+                $line =~ s/$wbbt/<a href="$url" target="_blank">$wbbt<\/a>/; }
+              print qq(<tr><td align="right">$line</td></tr>);
+            }
+          } # foreach my $line (@hyperData)
+          print qq(</table>);  
         }
         else { print qq(No significantly enriched cell/tissue has been found.<br/>\n); }
       print qq(<img src="$tempImageUrl"><br/>Drag graph to your desktop to save.<br/>);
