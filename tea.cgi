@@ -29,8 +29,8 @@ sub process {
   unless ($action = $query->param('action')) { $action = 'none'; }
 
   if ($action eq 'anatomySobaInput')           { &anatomySobaInput();      }
-    elsif ($action eq 'HGE Analyze List')      { &anatomySoba('textarea'); }
-    elsif ($action eq 'HGE Analyze File')      { &anatomySoba('file');     }
+    elsif ($action eq 'Analyze List')          { &anatomySoba('textarea'); }
+    elsif ($action eq 'Analyze File')          { &anatomySoba('file');     }
     else { &anatomySobaInput(); }				# no action, show dag by default
 } # sub process
 
@@ -41,10 +41,10 @@ sub anatomySobaInput {
   print qq(<textarea name="genelist" rows="20" cols="60"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
-  print qq(<input type="submit" name="action" value="HGE Analyze List"><br/><br/>\n);
-  print qq(Upload a file with gene names :<br/>);
+  print qq(<input type="submit" name="action" value="Analyze List"><br/><br/><br/><p>or</p><br/>\n);
+  print qq(Upload a file with gene names<br/>);
   print qq(<input type="file" name="geneNamesFile" /><br/>);
-  print qq(<input type="submit" name="action" value="HGE Analyze File"><br/>\n);
+  print qq(<input type="submit" name="action" value="Analyze File"><br/>\n);
   print qq(</form>);
 #   &printMessageFooter(); 		# raymond wanted to remove this 2016 04 14
   &printHtmlFooter(); 
