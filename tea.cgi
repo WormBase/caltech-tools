@@ -37,14 +37,18 @@ sub process {
 sub anatomySobaInput {
   &printHtmlHeader(); 
   print qq(<form method="post" action="tea.cgi" enctype="multipart/form-data">);
-  print qq(Enter list of genes here<br/>);
-  print qq(<textarea name="genelist" rows="20" cols="60"></textarea><br/>);
+  print qq(<table cellpadding="8"><tr><td>);
+  print qq(Enter a list of genes here<br/>);
+  print qq(<textarea name="genelist" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
-  print qq(<input type="submit" name="action" value="Analyze List"><br/><br/><br/><p>or</p><br/>\n);
+  print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/><br/><br/>);
+  print qq(</td><td valign="top"><p>or</p><br/>\n);
+  print qq(</td><td valign="top">);
   print qq(Upload a file with gene names<br/>);
-  print qq(<input type="file" name="geneNamesFile" /><br/>);
-  print qq(<input type="submit" name="action" value="Analyze File"><br/>\n);
+  print qq(<input type="file" name="geneNamesFile" id="geneNamesFile"/><br/>);
+  print qq(<input type="submit" name="action" id="analyzeFileButton" value="Analyze File"><br/>\n);
+  print qq(</td></tr></table>);
   print qq(</form>);
 #   &printMessageFooter(); 		# raymond wanted to remove this 2016 04 14
   &printHtmlFooter(); 
