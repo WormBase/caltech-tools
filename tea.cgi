@@ -34,11 +34,15 @@ sub process {
     else { &anatomySobaInput(); }				# no action, show dag by default
 } # sub process
 
+
 sub anatomySobaInput {
   &printHtmlHeader(); 
+#   print qq(<h1>Tissue Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><span style="font-size:12pt; text-decoration: underline;">?</span></a></h1>);
+  print qq(<h1>Tissue Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><img src="images/info.gif"></a></h1>);
+  print qq(Discovering association between a gene group and anatomical parts.<br/><br/>);
   print qq(<form method="post" action="tea.cgi" enctype="multipart/form-data">);
   print qq(<table cellpadding="8"><tr><td>);
-  print qq(Enter a list of genes here<br/>);
+  print qq(Enter a list of C. elegans gene names in the box<br/>);
   print qq(<textarea name="genelist" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
@@ -49,6 +53,7 @@ sub anatomySobaInput {
   print qq(<input type="file" name="geneNamesFile" id="geneNamesFile"/><br/>);
   print qq(<input type="submit" name="action" id="analyzeFileButton" value="Analyze File"><br/>\n);
   print qq(</td></tr></table>);
+#  print qq(<span style="font-size: 10pt;">Enter a gene list consisting of any accepted C. elegans gene names separated by spaces, colons or tabs into the box. Alternatively, input a plain-text file of gene names separated by spaces, colons or tabs using the 'Choose file' button. Text files must be plain text (.txt).<br/>The program returns enriched tissues as assessed by a hypergeometric function, after FDR correction. A bar chart containing the top 15 enriched tissues, sorted by increasing q-value and by decreasing fold-change is automatically generated. Bar coloring is intended to improve readability, and color does not convey information.<br/></span>\n);
   print qq(</form>);
 #   &printMessageFooter(); 		# raymond wanted to remove this 2016 04 14
   &printHtmlFooter(); 
@@ -57,6 +62,8 @@ sub anatomySobaInput {
 sub anatomySoba {
   my ($filesource) = @_;
   &printHtmlHeader(); 
+  print qq(<h1>Tissue Enrichment Analysis Results <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><img src="images/info.gif"></a></h1>);
+    print qq(Return up to 15 most significant anatomy terms.<br/><br/>);
 
   my ($var, $datatype)          = &getHtmlVar($query, 'datatype');
 #   ($var, my $showProcessTimes)  = &getHtmlVar($query, 'showProcessTimes');
@@ -166,8 +173,10 @@ sub anatomySoba {
           print qq(</table>);  
         }
         else { print qq(No significantly enriched cell/tissue has been found.<br/>\n); }
-      print qq(<img src="$tempImageUrl"><br/>Drag graph to your desktop to save.<br/>);
       close (OUT) or die "Cannot close $tempOutFile : $!";
+      print qq(<img src="$tempImageUrl"><br/>\n);
+#      print qq(This bar chart automatically displays up to 15 enriched tissues sorted by q-value (lowest q-value on top) and secondarily by fold-change (higher fold change on top) in case of tied q-values. Colors are meant to improve readability and do not convey information.<br/>);
+      print qq(Drag graph to your desktop to save.<br/>);
       print qq(Download output table <a href="$tempOutUrl" target="_blank">here</a><br/><br/>);
     }
     else { print qq(There are no genes with annotated data to generate results.<br/>\n); }
