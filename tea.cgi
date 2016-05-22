@@ -42,7 +42,7 @@ sub anatomySobaInput {
 #   print qq(<h1>Tissue Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><span style="font-size:12pt; text-decoration: underline;">?</span></a></h1>);
 #   print qq(<h1>Tissue Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><img src="images/info.gif"></a></h1>);
   print qq(<h1>Tissue Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
-  print qq(Discovering association between a gene group and anatomical parts.<br/><br/>);
+  print qq(Enter a gene set to find tissues that are over-represented regarding gene expression annotation frequency.<br/><br/>);
   print qq(<form method="post" action="tea.cgi" enctype="multipart/form-data">);
   print qq(<table cellpadding="8"><tr><td>);
   print qq(Enter a list of C. elegans gene names in the box<br/>);
