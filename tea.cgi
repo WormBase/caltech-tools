@@ -46,7 +46,7 @@ sub anatomySobaInput {
   print qq(<form method="post" action="tea.cgi" enctype="multipart/form-data">);
   print qq(<table cellpadding="8"><tr><td>);
   print qq(Enter a list of C. elegans gene names in the box<br/>);
-  print qq(<textarea name="genelist" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
+  print qq(<textarea name="genelist" placeholder="adt-1 C02B4.1 WBGene00000082" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/><br/><br/>);
