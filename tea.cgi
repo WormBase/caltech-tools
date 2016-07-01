@@ -67,7 +67,6 @@ sub anatomySoba {
   &printHtmlHeader(); 
 #   print qq(<h1>Tissue Enrichment Analysis Results <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><img src="images/info.gif"></a></h1>);
   print qq(<h1>Tissue Enrichment Analysis Results <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
-    print qq(Return up to 15 most significant anatomy terms.<br/><br/>);
 
   my ($var, $datatype)          = &getHtmlVar($query, 'datatype');
 #   ($var, my $showProcessTimes)  = &getHtmlVar($query, 'showProcessTimes');
@@ -178,6 +177,7 @@ sub anatomySoba {
         }
         else { print qq(No significantly enriched cell/tissue has been found.<br/>\n); }
       close (OUT) or die "Cannot close $tempOutFile : $!";
+      print qq(<br/><br/>Return up to 15 most significant anatomy terms.<br/>);
       print qq(<img src="$tempImageUrl"><br/>\n);
 #      print qq(This bar chart automatically displays up to 15 enriched tissues sorted by q-value (lowest q-value on top) and secondarily by fold-change (higher fold change on top) in case of tied q-values. Colors are meant to improve readability and do not convey information.<br/>);
       print qq(Drag graph to your desktop to save.<br/>);
