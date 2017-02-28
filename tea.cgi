@@ -1,6 +1,9 @@
 #!/usr/bin/perl 
 
 # flat file for genes is not on cronjob.  this machine probably does not have tazendra access, copied from .204  2016 03 24
+#
+# integrated different dictionary and text for phenotype and go terms.  2017 02 09
+
 
 use CGI;
 use strict;
@@ -22,7 +25,13 @@ my $base_solr_url = 'http://wobr.caltech.edu:8082/solr/';		# raymond dev URL 201
 
 my ($infogif) = &getInfoGif();
 
-my $title = 'Tissue Enrichment Analysis';
+my $datatypeLabel = 'Tissue';
+my ($var, $datatype)  = &getHtmlVar($query, 'datatype');
+unless ($datatype) { $datatype = 'anatomy'; }
+if ($datatype eq 'anatomy')        { $datatypeLabel = 'Tissue'; }
+  elsif ($datatype eq 'phenotype') { $datatypeLabel = 'Phenotype'; }
+  elsif ($datatype eq 'go')        { $datatypeLabel = 'Gene Ontology'; }
+my $title = $datatypeLabel . ' Enrichment Analysis';
 my ($header, $footer) = &cshlNew($title);
 &process();
 
@@ -39,18 +48,17 @@ sub process {
 
 sub anatomySobaInput {
   &printHtmlHeader(); 
-#   print qq(<h1>Tissue Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><span style="font-size:12pt; text-decoration: underline;">?</span></a></h1>);
-#   print qq(<h1>Tissue Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><img src="images/info.gif"></a></h1>);
-  print qq(<h1>Tissue Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
+  print qq(<h1>$datatypeLabel Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
   print qq(Enter a gene set to find tissues that are over-represented regarding gene expression annotation frequency.<br/><br/>);
   print qq(<form method="post" action="tea.cgi" enctype="multipart/form-data">);
+  print qq(<input type="hidden" name="datatype" value="$datatype">);
   print qq(<table cellpadding="8"><tr><td>);
   print qq(Enter a list of C. elegans gene names in the box<br/>);
   print qq(<textarea name="genelist" placeholder="adt-1 C02B4.1 WBGene00000082" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/><br/><br/>);
-  print qq(Citation:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "Tissue enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/><br/>);
+  print qq(Citation:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "$datatypeLabel enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/><br/>);
   print qq(</td><td valign="top"><p>or</p><br/>\n);
   print qq(</td><td valign="top">);
   print qq(Upload a file with gene names<br/>);
@@ -66,22 +74,19 @@ sub anatomySobaInput {
 sub anatomySoba {
   my ($filesource) = @_;
   &printHtmlHeader(); 
-#   print qq(<h1>Tissue Enrichment Analysis Results <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank"><img src="images/info.gif"></a></h1>);
-  print qq(<h1>Tissue Enrichment Analysis Results <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
+  print qq(<h1>$datatypeLabel Enrichment Analysis Results <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
 
-  my ($var, $datatype)          = &getHtmlVar($query, 'datatype');
+#   ($var, $datatype)          = &getHtmlVar($query, 'datatype');
 #   ($var, my $showProcessTimes)  = &getHtmlVar($query, 'showProcessTimes');
 #   ($var, my $convertGeneToId)   = &getHtmlVar($query, 'convertGeneToId');	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   ($var, my $calculateLcaNodes) = &getHtmlVar($query, 'calculateLcaNodes');
 #   my ($var, $download)    = &getHtmlVar($query, 'download');
-  unless ($datatype) { $datatype = 'anatomy'; }			# later will need to change based on different datatypes
+#   unless ($datatype) { $datatype = 'anatomy'; }			# later will need to change based on different datatypes
 
 #   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Loading dictionary"); print qq($message<br/>\n); }
 
-# python3  /home/raymond/local/src/git/TissueEnrichmentAnalysis/hypergeometricTests.py  /home/raymond/local/src/git/dictionary_generator/anat_dict.csv  /home/raymond/local/src/git/TissueEnrichmentAnalysis/input/SCohen_daf22.csv -p -s -t "BLAH"
-
   my %dict;
-  my $dictFile = '/home/raymond/local/src/git/dictionary_generator/anat_dict.csv';
+  my $dictFile = '/home/raymond/local/src/git/dictionary_generator/' . $datatype . '_dict.csv';
   open (DICT, "<$dictFile") or die "Cannot open $dictFile : $!";
   while (my $line = <DICT>) {
     my (@stuff) = split/,/, $line;
@@ -144,12 +149,7 @@ sub anatomySoba {
 #       print TMP qq(gene,reads\n);
       foreach my $gene (@goodGene) { print TMP qq($gene\n); }
       close (TMP) or die "Cannot close $tempfile : $!";
-#       my $hyperData = `python /home/raymond/local/src/git/tissue_enrichment_tool_hypergeometric_test/src/hypergeometricTests.py /home/azurebrd/local/src/git/tissue_enrichment_tool_hypergeometric_test/genesets/WBPaper00013489_Ray_Enriched_WBbt:0006941_25`;
-#       my $hyperData = `python /home/azurebrd/public_html/cgi-bin/hypergeometricTests.py /home/azurebrd/local/src/git/tissue_enrichment_tool_hypergeometric_test/genesets/WBPaper00013489_Ray_Enriched_WBbt:0006941_25`;
-#       my $hyperData = `python /home/azurebrd/public_html/cgi-bin/hypergeometricTests.py $tempfile`;
-#       my $hyperData = `python /home/raymond/local/src/git/tissue_enrichment_tool_hypergeometric_test/src/hypergeometricTests.py $tempfile`;
-#                      python3  /home/raymond/local/src/git/TissueEnrichmentAnalysis/hypergeometricTests.py  /home/raymond/local/src/git/dictionary_generator/anat_dict.csv  /home/raymond/local/src/git/TissueEnrichmentAnalysis/input/SCohen_daf22.csv -p -s -t "BLAH"
-      my $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/anat_dict.csv  $tempfile "$tempfile" -p -s`;
+      my $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" tissue -p -s`;
 
 #       `rm $tempfile`;
 # print qq(HPD $hyperData HPD<br/>);
@@ -168,9 +168,17 @@ sub anatomySoba {
               print OUT qq($line\n);
               $line =~ s|\t|</td><td>|g;
               if ($line =~ m/(WBbt:\d+)/) { 
-                my $wbbt = $1;
-                my $url = 'http://www.wormbase.org/species/all/anatomy_term/' .$wbbt . '#013--10';
-                $line =~ s/$wbbt/<a href="$url" target="_blank">$wbbt<\/a>/; }
+                 my $wbbt = $1;
+                 my $url = 'http://www.wormbase.org/species/all/anatomy_term/' .$wbbt . '#013--10';
+                 $line =~ s/$wbbt/<a href="$url" target="_blank">$wbbt<\/a>/; }
+               elsif ($line =~ m/(GO:\d+)/) { 
+                 my $go = $1;
+                 my $url = 'http://www.wormbase.org/species/all/go_term/' .$go . '#013--10';
+                 $line =~ s/$go/<a href="$url" target="_blank">$go<\/a>/; }
+               elsif ($line =~ m/(WBPhenotype:\d+)/) { 
+                 my $wbphenotype = $1;
+                 my $url = 'http://www.wormbase.org/species/all/phenotype/' .$wbphenotype . '#013--10';
+                 $line =~ s/$wbphenotype/<a href="$url" target="_blank">$wbphenotype<\/a>/; }
               print qq(<tr><td align="right">$line</td></tr>);
             }
           } # foreach my $line (@hyperData)
@@ -178,7 +186,7 @@ sub anatomySoba {
         }
         else { print qq(No significantly enriched cell/tissue has been found.<br/>\n); }
       close (OUT) or die "Cannot close $tempOutFile : $!";
-      print qq(<br/><br/>Return up to 15 most significant anatomy terms.<br/>);
+      print qq(<br/><br/>Return up to 15 most significant $datatype terms.<br/>);
       print qq(<img src="$tempImageUrl"><br/>\n);
 #      print qq(This bar chart automatically displays up to 15 enriched tissues sorted by q-value (lowest q-value on top) and secondarily by fold-change (higher fold change on top) in case of tied q-values. Colors are meant to improve readability and do not convey information.<br/>);
       print qq(Drag graph to your desktop to save.<br/>);
@@ -205,7 +213,7 @@ sub anatomySoba {
     print qq(<textarea rows="6" cols="80">);
     foreach my $gene (@goodGene) { print qq($gene - $geneIdToName{$gene}\n); } 
     print qq(</textarea><br/><br/>); }
-  print qq(<a href="tea.cgi">perform another query</a><br/>);
+  print qq(<a href="tea.cgi?datatype=$datatype">perform another query</a><br/>);
 
 #   &printMessageFooter(); 		# raymond wanted to remove this 2016 04 14
   &printHtmlFooter(); 
@@ -249,7 +257,6 @@ function togglePlusMinus(element) {
 }
 </script>
 EndOfText
-#   print qq(Content-type: text/html\n\n<html><head><title>Tissue Enrichment Analysis</title>$javascript</head><body>\n); 
   print qq(Content-type: text/html\n\n$header $javascript<body>\n); 
 }
 
