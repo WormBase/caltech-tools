@@ -31,6 +31,9 @@ unless ($datatype) { $datatype = 'anatomy'; }
 if ($datatype eq 'anatomy')        { $datatypeLabel = 'Tissue'; }
   elsif ($datatype eq 'phenotype') { $datatypeLabel = 'Phenotype'; }
   elsif ($datatype eq 'go')        { $datatypeLabel = 'Gene Ontology'; }
+  elsif ($datatype eq 'go_component')        { $datatypeLabel = 'Gene Ontology - Cellular Component'; }
+  elsif ($datatype eq 'go_function')        { $datatypeLabel = 'Gene Ontology - Molecular Function'; }
+  elsif ($datatype eq 'go_process')        { $datatypeLabel = 'Gene Ontology - Biological Process'; }
 my $title = $datatypeLabel . ' Enrichment Analysis';
 my ($header, $footer) = &cshlNew($title);
 &process();
@@ -49,7 +52,8 @@ sub process {
 sub anatomySobaInput {
   &printHtmlHeader(); 
   print qq(<h1>$datatypeLabel Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
-  print qq(Enter a gene set to find tissues that are over-represented regarding gene expression annotation frequency.<br/><br/>);
+  print qq(Enter a gene set to find $datatypeLabel);
+  print qq((s) that are over-represented regarding gene annotation frequency.<br/><br/>);
   print qq(<form method="post" action="tea.cgi" enctype="multipart/form-data">);
   print qq(<input type="hidden" name="datatype" value="$datatype">);
   print qq(<table cellpadding="8"><tr><td>);
@@ -58,7 +62,7 @@ sub anatomySobaInput {
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/><br/><br/>);
-  print qq(Citation:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "$datatypeLabel enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/><br/>);
+  print qq(Citation:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "Tissue enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/><br/>);
   print qq(</td><td valign="top"><p>or</p><br/>\n);
   print qq(</td><td valign="top">);
   print qq(Upload a file with gene names<br/>);
