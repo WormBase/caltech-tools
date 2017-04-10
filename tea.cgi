@@ -21,20 +21,22 @@ $prevTime  =~ s/(\....).*$/$1/;
 # my $result;
 
 my $query = new CGI;
-my $base_solr_url = 'http://wobr.caltech.edu:8082/solr/';		# raymond dev URL 2015 07 24
+my $base_solr_url = 'http://localhost:8080/solr/';		# raymond dev URL 2015 07 24
 
 my ($infogif) = &getInfoGif();
 
 my $datatypeLabel = 'Tissue';
 my ($var, $datatype)  = &getHtmlVar($query, 'datatype');
 unless ($datatype) { $datatype = 'anatomy'; }
-if ($datatype eq 'anatomy')        { $datatypeLabel = 'Tissue'; }
-  elsif ($datatype eq 'phenotype') { $datatypeLabel = 'Phenotype'; }
-  elsif ($datatype eq 'go')        { $datatypeLabel = 'Gene Ontology'; }
-  elsif ($datatype eq 'go_component')        { $datatypeLabel = 'Gene Ontology - Cellular Component'; }
-  elsif ($datatype eq 'go_function')        { $datatypeLabel = 'Gene Ontology - Molecular Function'; }
-  elsif ($datatype eq 'go_process')        { $datatypeLabel = 'Gene Ontology - Biological Process'; }
-my $title = $datatypeLabel . ' Enrichment Analysis';
+# if ($datatype eq 'anatomy')             { $datatypeLabel = 'Tissue'; }
+#   elsif ($datatype eq 'phenotype')      { $datatypeLabel = 'Phenotype'; }
+#   elsif ($datatype eq 'go')             { $datatypeLabel = 'Gene Ontology'; }
+#   elsif ($datatype eq 'go_component')   { $datatypeLabel = 'Gene Ontology - Cellular Component'; }
+#   elsif ($datatype eq 'go_function')    { $datatypeLabel = 'Gene Ontology - Molecular Function'; }
+#   elsif ($datatype eq 'go_process')     { $datatypeLabel = 'Gene Ontology - Biological Process'; }
+# $datatypeLabel = qq( Tissue + Anatomy + GO );
+# my $title = $datatypeLabel . ' Enrichment Analysis';
+my $title = 'Enrichment Analysis';
 my ($header, $footer) = &cshlNew($title);
 &process();
 
@@ -51,18 +53,20 @@ sub process {
 
 sub anatomySobaInput {
   &printHtmlHeader(); 
-  print qq(<h1>$datatypeLabel Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
-  print qq(Enter a gene set to find $datatypeLabel);
-  print qq((s) that are over-represented regarding gene annotation frequency.<br/><br/>);
+#   print qq(<h1>$datatypeLabel Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
+  print qq(<h1>Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
+  print qq(Enter a gene set to find annotated terms that are over-represented using TEA PEA and GEA.<br/><br/>);
+#   print qq(Enter a gene set to find $datatypeLabel);
+#   print qq(objects that are over-represented regarding gene annotation frequency.<br/><br/>);
   print qq(<form method="post" action="tea.cgi" enctype="multipart/form-data">);
   print qq(<input type="hidden" name="datatype" value="$datatype">);
   print qq(<table cellpadding="8"><tr><td>);
-  print qq(Enter a list of C. elegans gene names in the box<br/>);
+  print qq(Enter a list of <i>C. elegans</i> gene names in the box<br/>);
   print qq(<textarea name="genelist" placeholder="adt-1 C02B4.1 WBGene00000082" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/><br/><br/>);
-  print qq(Citation:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "Tissue enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/><br/>);
+  print qq(Citations:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "Tissue enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2017), "Phenotype and gene ontology enrichment as guides for disease modeling in C. elegans", manuscript in preparation.<br/><br/>);
   print qq(</td><td valign="top"><p>or</p><br/>\n);
   print qq(</td><td valign="top">);
   print qq(Upload a file with gene names<br/>);
@@ -78,29 +82,16 @@ sub anatomySobaInput {
 sub anatomySoba {
   my ($filesource) = @_;
   &printHtmlHeader(); 
-  print qq(<h1>$datatypeLabel Enrichment Analysis Results <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
 
-#   ($var, $datatype)          = &getHtmlVar($query, 'datatype');
-#   ($var, my $showProcessTimes)  = &getHtmlVar($query, 'showProcessTimes');
-#   ($var, my $convertGeneToId)   = &getHtmlVar($query, 'convertGeneToId');	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
-  ($var, my $calculateLcaNodes) = &getHtmlVar($query, 'calculateLcaNodes');
-#   my ($var, $download)    = &getHtmlVar($query, 'download');
-#   unless ($datatype) { $datatype = 'anatomy'; }			# later will need to change based on different datatypes
+  my @datatypes = qw( anatomy phenotype go );
 
-#   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Loading dictionary"); print qq($message<br/>\n); }
+  my %datatypeToLabel;
+  $datatypeToLabel{'anatomy'}   = 'TEA';
+  $datatypeToLabel{'phenotype'} = 'PEA';
+  $datatypeToLabel{'go'}        = 'GEA';
+  foreach my $datatype (@datatypes) { print qq(Click <a href="#$datatype">here</a> for $datatypeToLabel{$datatype} results.<br/>); }
+  print qq(<br/><br/>);
 
-  my %dict;
-  my $dictFile = '/home/raymond/local/src/git/dictionary_generator/' . $datatype . '_dict.csv';
-  open (DICT, "<$dictFile") or die "Cannot open $dictFile : $!";
-  while (my $line = <DICT>) {
-    my (@stuff) = split/,/, $line;
-    if ($stuff[0] =~ m/WBGene/) { $dict{$stuff[0]}++; }
-  } # while (my $line = <DICT>)
-  close (DICT) or die "Cannot close $dictFile : $!";
-
-#   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Getting altId mappings"); print qq($message<br/>\n); }
-
-  my @annotAnatomyTerms;					# array of annotated terms to loop and do pairwise comparisons
   my $genelist = '';
   if ($filesource eq 'textarea') {
       ($var, $genelist) = &getHtmlVar($query, 'genelist'); }
@@ -122,6 +113,38 @@ sub anatomySoba {
     my ($geneNameToIdHashref, $geneIdToNameHashref) = &populateGeneNamesFromFlatfile();
     %geneNameToId        = %$geneNameToIdHashref;
     %geneIdToName        = %$geneIdToNameHashref; }
+
+
+  foreach my $datatype (@datatypes) {
+    my $datatypeLabel = 'Tissue';
+    if ($datatype eq 'anatomy')        { $datatypeLabel = 'Tissue'; }
+      elsif ($datatype eq 'phenotype') { $datatypeLabel = 'Phenotype'; }
+      elsif ($datatype eq 'go')        { $datatypeLabel = 'Gene Ontology'; }
+      elsif ($datatype eq 'go_component')        { $datatypeLabel = 'Gene Ontology - Cellular Component'; }
+      elsif ($datatype eq 'go_function')        { $datatypeLabel = 'Gene Ontology - Molecular Function'; }
+      elsif ($datatype eq 'go_process')        { $datatypeLabel = 'Gene Ontology - Biological Process'; }
+
+  print qq(<h1><a name="$datatype"></a>$datatypeLabel Enrichment Analysis Results <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
+
+#   ($var, $datatype)          = &getHtmlVar($query, 'datatype');
+#   ($var, my $showProcessTimes)  = &getHtmlVar($query, 'showProcessTimes');
+#   ($var, my $convertGeneToId)   = &getHtmlVar($query, 'convertGeneToId');	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
+#   ($var, my $calculateLcaNodes) = &getHtmlVar($query, 'calculateLcaNodes');
+#   my ($var, $download)    = &getHtmlVar($query, 'download');
+#   unless ($datatype) { $datatype = 'anatomy'; }			# later will need to change based on different datatypes
+
+#   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Loading dictionary"); print qq($message<br/>\n); }
+
+  my %dict;
+  my $dictFile = '/home/raymond/local/src/git/dictionary_generator/' . $datatype . '_dict.csv';
+  open (DICT, "<$dictFile") or die "Cannot open $dictFile : $!";
+  while (my $line = <DICT>) {
+    my (@stuff) = split/,/, $line;
+    if ($stuff[0] =~ m/WBGene/) { $dict{$stuff[0]}++; }
+  } # while (my $line = <DICT>)
+  close (DICT) or die "Cannot close $dictFile : $!";
+
+#   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Getting altId mappings"); print qq($message<br/>\n); }
 
 #   my %geneAnatomy; my %anatomyGene;
 
@@ -153,7 +176,8 @@ sub anatomySoba {
 #       print TMP qq(gene,reads\n);
       foreach my $gene (@goodGene) { print TMP qq($gene\n); }
       close (TMP) or die "Cannot close $tempfile : $!";
-      my $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" tissue -p -s`;
+      my $someVariable = $datatype; if ($someVariable eq 'anatomy') { $someVariable = 'tissue'; }
+      my $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s`;
 
 #       `rm $tempfile`;
 # print qq(HPD $hyperData HPD<br/>);
@@ -217,7 +241,10 @@ sub anatomySoba {
     print qq(<textarea rows="6" cols="80">);
     foreach my $gene (@goodGene) { print qq($gene - $geneIdToName{$gene}\n); } 
     print qq(</textarea><br/><br/>); }
-  print qq(<a href="tea.cgi?datatype=$datatype">perform another query</a><br/>);
+#   print qq(<a href="tea.cgi?datatype=$datatype">perform another query</a><br/><br/><br/>);
+  print qq(<a href="tea.cgi">perform another query</a><br/><br/><br/>);
+
+  }
 
 #   &printMessageFooter(); 		# raymond wanted to remove this 2016 04 14
   &printHtmlFooter(); 
@@ -300,6 +327,7 @@ sub cshlNew {
 #  $page =~ s/src="/src="http:\/\/www.wormbase.org/g;
   ($header, $footer) = $page =~ m/^(.*?)\s+DIVIDER\s+(.*?)$/s;  # 2006 11 20    # get this from tazendra's script result.
 #   $header =~ s/WormBase - Home Page/$title/g;                 # 2015 05 07    # wormbase 2.0
+#   $header =~ s/WS2../WS256/g; # Dictionary freeze for P/GEA paper review process
   $header =~ s/<title>.*?<\/title>/<title>$title<\/title>/g;
   return ($header, $footer);
 } # sub cshlNew
