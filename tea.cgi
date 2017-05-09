@@ -55,7 +55,7 @@ sub anatomySobaInput {
   &printHtmlHeader(); 
 #   print qq(<h1>$datatypeLabel Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
   print qq(<h1>Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
-  print qq(Enter a gene set to find annotated terms that are over-represented using TEA PEA and GEA.<br/><br/>);
+  print qq(Enter a gene set to find annotated terms that are over-represented using TEA (Tissue), PEA (Phenotype) and GEA (GO).<br/><br/>);
 #   print qq(Enter a gene set to find $datatypeLabel);
 #   print qq(objects that are over-represented regarding gene annotation frequency.<br/><br/>);
   print qq(<form method="post" action="tea.cgi" enctype="multipart/form-data">);
