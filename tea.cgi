@@ -56,7 +56,7 @@ sub anatomySobaInput {
 #   print qq(<h1>$datatypeLabel Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
   print qq(<h1>Enrichment Analysis <a href="http://wiki.wormbase.org/index.php/User_Guide/TEA" target="_blank">$infogif</a></h1>);
   print qq(Enter a gene set to find annotated terms that are over-represented using TEA (Tissue), PEA (Phenotype) and GEA (GO).<br/><br/>);
-  print qq(<h3>PLEASE NOTE: We have discovered several genes mis-annotated for expression pattern and the correction will be released as of WS260.<br/>);
+  print qq(<h3>PLEASE NOTE: We have discovered several genes mis-annotated for expression pattern (wrt WBbt:0005772 and WBbt:0005722). Correction will be released as of WS260.<br/>);
   print qq(For now, you may consider using the testing <a href="http://131.215.12.204/~azurebrd/cgi-bin/tea/tea.cgi" target="_blank">WS260 version for TEA</a>.</h3><br/><br/>);
 
 #   print qq(Enter a gene set to find $datatypeLabel);
