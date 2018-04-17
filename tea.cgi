@@ -168,6 +168,7 @@ sub anatomySoba {
       my $time = time;
       my $tempfile     = '/tmp/hyperGeo/hyperGeo' . $time;
       my $tempOutFile  = '/tmp/hyperGeo/hyperGeo' . $time . '.txt';
+      my $tempMeltFile = '/tmp/hyperGeo/hyperGeo' . $time . '.csv';
 #       my $tempOutUrl   = '../data/hyperGeo/hyperGeo' . $time . '.txt';	# changed data to not be in other parent directory
       my $tempOutUrl   = 'data/hyperGeo/hyperGeo' . $time . '.txt';
       open (OUT, ">$tempOutFile") or die "Cannot open $tempOutFile : $!";
@@ -178,7 +179,7 @@ sub anatomySoba {
       foreach my $gene (@goodGene) { print TMP qq($gene\n); }
       close (TMP) or die "Cannot close $tempfile : $!";
       my $someVariable = $datatype; if ($someVariable eq 'anatomy') { $someVariable = 'tissue'; }
-      my $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s`;
+      my $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile`;
 
 #       `rm $tempfile`;
 # print qq(HPD $hyperData HPD<br/>);
