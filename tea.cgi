@@ -67,7 +67,7 @@ sub anatomySobaInput {
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/><br/><br/>);
-  print qq(Citations:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "Tissue enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2017), "Phenotype and gene ontology enrichment as guides for disease modeling in C. elegans", manuscript in preparation.<br/><br/>);
+  print qq(Citations:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "Tissue enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/>Angeles-Albores, D; Lee, RYN; Chan, J; Sternberg, PW (2018): Two new functions in the WormBase Enrichment Suite. Micropublication: biology. Dataset. <a href="https://doi.org/10.17912/W25Q2N">https://doi.org/10.17912/W25Q2N</a><br/><br/>);
   print qq(</td><td valign="top"><p>or</p><br/>\n);
   print qq(</td><td valign="top">);
   print qq(Upload a file with gene names<br/>);
