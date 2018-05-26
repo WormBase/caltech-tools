@@ -63,16 +63,23 @@ sub anatomySobaInput {
   print qq(<input type="hidden" name="datatype" value="$datatype">);
   print qq(<table cellpadding="8"><tr><td>);
   print qq(Enter a list of <i>C. elegans</i> gene names in the box<br/>);
-  print qq(<textarea name="genelist" placeholder="adt-1 C02B4.1 WBGene00000082" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
+  print qq(<textarea name="genelist" placeholder="eat-4 ZK512.6 WBGene00001135" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/><br/><br/>);
-  print qq(Citations:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "Tissue enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/>Angeles-Albores, D; Lee, RYN; Chan, J; Sternberg, PW (2018): Two new functions in the WormBase Enrichment Suite. Micropublication: biology. Dataset. <a href="https://doi.org/10.17912/W25Q2N">https://doi.org/10.17912/W25Q2N</a><br/><br/>);
   print qq(</td><td valign="top"><p>or</p><br/>\n);
   print qq(</td><td valign="top">);
   print qq(Upload a file with gene names<br/>);
   print qq(<input type="file" name="geneNamesFile" id="geneNamesFile"/><br/>);
   print qq(<input type="submit" name="action" id="analyzeFileButton" value="Analyze File"><br/>\n);
+
+  print qq(</td></tr><tr><td>);
+  print qq(Optionally upload a file with background genes; then do 'Analyze List' or 'Analyze File'<br/>);
+  print qq(<input type="file" name="backgroundGenesFile" id="backgroundGenesFile"/><br/><br/><br/>);
+
+  print qq(</td></tr><tr><td>);
+  print qq(Citations:<br>David Angeles-Albores, Raymond Y. N. Lee, Juancarlos Chan and Paul W. Sternberg (2016), "Tissue enrichment analysis for C. elegans genomics", BMC Bioinformatics 17:366<br/>Angeles-Albores, D; Lee, RYN; Chan, J; Sternberg, PW (2018): Two new functions in the WormBase Enrichment Suite. Micropublication: biology. Dataset. <a href="https://doi.org/10.17912/W25Q2N">https://doi.org/10.17912/W25Q2N</a><br/><br/>);
+
   print qq(</td></tr></table>);
 #  print qq(<span style="font-size: 10pt;">Enter a gene list consisting of any accepted C. elegans gene names separated by spaces, colons or tabs into the box. Alternatively, input a plain-text file of gene names separated by spaces, colons or tabs using the 'Choose file' button. Text files must be plain text (.txt).<br/>The program returns enriched tissues as assessed by a hypergeometric function, after FDR correction. A bar chart containing the top 15 enriched tissues, sorted by increasing q-value and by decreasing fold-change is automatically generated. Bar coloring is intended to improve readability, and color does not convey information.<br/></span>\n);
   print qq(</form>);
@@ -92,6 +99,11 @@ sub anatomySoba {
   $datatypeToLabel{'go'}        = 'GEA';
   foreach my $datatype (@datatypes) { print qq(Click <a href="#$datatype">here</a> for $datatypeToLabel{$datatype} results.<br/>); }
   print qq(<br/><br/>);
+
+  my $backgroundList = '';
+  my $upload_bg_filehandle = $query->upload("backgroundGenesFile");
+  while ( <$upload_bg_filehandle> ) { $backgroundList .= $_; }
+#   print qq(BGL $backgroundList BGL<br>);
 
   my $genelist = '';
   if ($filesource eq 'textarea') {
@@ -169,8 +181,10 @@ sub anatomySoba {
       my $tempfile     = '/tmp/hyperGeo/hyperGeo' . $time;
       my $tempOutFile  = '/tmp/hyperGeo/hyperGeo' . $time . '.txt';
       my $tempMeltFile = '/tmp/hyperGeo/hyperGeo' . $time . '.csv';
+      my $tempBgFile   = '/tmp/hyperGeo/hyperGeo' . $time . '.background.csv';
 #       my $tempOutUrl   = '../data/hyperGeo/hyperGeo' . $time . '.txt';	# changed data to not be in other parent directory
       my $tempOutUrl   = 'data/hyperGeo/hyperGeo' . $time . '.txt';
+      my $tempMeltUrl  = 'data/hyperGeo/hyperGeo' . $time . '.csv';
       open (OUT, ">$tempOutFile") or die "Cannot open $tempOutFile : $!";
 #       my $tempImageUrl = '../data/hyperGeo/hyperGeo' . $time . '.svg';	# changed data to not be in other parent directory
       my $tempImageUrl = 'data/hyperGeo/hyperGeo' . $time . '.svg';
@@ -179,7 +193,16 @@ sub anatomySoba {
       foreach my $gene (@goodGene) { print TMP qq($gene\n); }
       close (TMP) or die "Cannot close $tempfile : $!";
       my $someVariable = $datatype; if ($someVariable eq 'anatomy') { $someVariable = 'tissue'; }
-      my $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile`;
+      my $hyperData = '';
+      if ($backgroundList) {
+          open (BG, ">$tempBgFile") or die "Cannot open $tempBgFile : $!";
+          print BG $backgroundList;
+          close (BG) or die "Cannot close $tempBgFile : $!";
+#           print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile -b $tempBgFile);
+          $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile -b $tempBgFile`; }
+        else {
+#           print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile);
+          $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile`; }
 
 #       `rm $tempfile`;
 # print qq(HPD $hyperData HPD<br/>);
@@ -220,7 +243,8 @@ sub anatomySoba {
       print qq(<img src="$tempImageUrl"><br/>\n);
 #      print qq(This bar chart automatically displays up to 15 enriched tissues sorted by q-value (lowest q-value on top) and secondarily by fold-change (higher fold change on top) in case of tied q-values. Colors are meant to improve readability and do not convey information.<br/>);
       print qq(Drag graph to your desktop to save.<br/>);
-      print qq(Download output table <a href="$tempOutUrl" target="_blank">here</a><br/><br/>);
+      print qq(Download results table <a href="$tempOutUrl" target="_blank">here</a>.<br/>);
+      print qq(Download observed gene table <a href="$tempMeltUrl" target="_blank">here</a>.<br/><br/>);
     }
     else { print qq(There are no genes with annotated data to generate results.<br/>\n); }
   print qq(<br/>);
