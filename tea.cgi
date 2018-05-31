@@ -176,6 +176,7 @@ sub anatomySoba {
 
   my %anatomyTerms;
   if (scalar @goodGene > 0) {
+      my $outputHtml = '';
 #       if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Processing hgf"); print qq($message<br/>\n); }
       my $time = time;
       my $tempfile     = '/tmp/hyperGeo/hyperGeo' . $time;
@@ -214,7 +215,7 @@ sub anatomySoba {
 #       my $th = join"</th><th>", @header;
       if (scalar @hyperData > 0) {
 #           print qq(<table><tr><th>$th</th></tr>\n);
-          print qq(<table border="1" style="border-spacing: 0;">);  
+          $outputHtml .= qq(<table border="1" style="border-spacing: 0;">);  
           foreach my $line (@hyperData) {
             next if ($line =~ m/Executing script/);
             if ($line) {
@@ -232,19 +233,21 @@ sub anatomySoba {
                  my $wbphenotype = $1;
                  my $url = 'http://www.wormbase.org/species/all/phenotype/' .$wbphenotype . '#013--10';
                  $line =~ s/$wbphenotype/<a href="$url" target="_blank">$wbphenotype<\/a>/; }
-              print qq(<tr><td align="right">$line</td></tr>);
+              $outputHtml .= qq(<tr><td align="right">$line</td></tr>);
             }
           } # foreach my $line (@hyperData)
-          print qq(</table>);  
+          $outputHtml .= qq(</table>);  
         }
-        else { print qq(No significantly enriched cell/tissue has been found.<br/>\n); }
+        else { $outputHtml .= qq(No significantly enriched cell/tissue has been found.<br/>\n); }
       close (OUT) or die "Cannot close $tempOutFile : $!";
-      print qq(<br/><br/>Return up to 15 most significant $datatype terms.<br/>);
-      print qq(<img src="$tempImageUrl"><br/>\n);
-#      print qq(This bar chart automatically displays up to 15 enriched tissues sorted by q-value (lowest q-value on top) and secondarily by fold-change (higher fold change on top) in case of tied q-values. Colors are meant to improve readability and do not convey information.<br/>);
-      print qq(Drag graph to your desktop to save.<br/>);
-      print qq(Download results table <a href="$tempOutUrl" target="_blank">here</a>.<br/>);
-      print qq(Download observed gene table <a href="$tempMeltUrl" target="_blank">here</a>.<br/><br/>);
+      $outputHtml .= qq(<br/><br/>Return up to 15 most significant $datatype terms.<br/>);
+      $outputHtml .= qq(<img src="$tempImageUrl"><br/>\n);
+#      $outputHtml .= qq(This bar chart automatically displays up to 15 enriched tissues sorted by q-value (lowest q-value on top) and secondarily by fold-change (higher fold change on top) in case of tied q-values. Colors are meant to improve readability and do not convey information.<br/>);
+      $outputHtml .= qq(Drag graph to your desktop to save.<br/>);
+      $outputHtml .= qq(Download results table <a href="$tempOutUrl" target="_blank">here</a>.<br/>);
+      $outputHtml .= qq(Download observed gene table <a href="$tempMeltUrl" target="_blank">here</a>.<br/><br/>);
+      if ($outputHtml =~ m/dataframe is empty/) { print qq(No significantly enriched terms have been found.<br/><br/>\n); }
+        else { print $outputHtml; }
     }
     else { print qq(There are no genes with annotated data to generate results.<br/>\n); }
   print qq(<br/>);
