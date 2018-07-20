@@ -3,6 +3,8 @@
 # flat file for genes is not on cronjob.  this machine probably does not have tazendra access, copied from .204  2016 03 24
 #
 # integrated different dictionary and text for phenotype and go terms.  2017 02 09
+#
+# filter user input genes by wbgene and display all user inputs with them.  2018 07 20
 
 
 use CGI;
@@ -163,19 +165,19 @@ sub anatomySoba {
 
 #   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Processing user genes for validity"); print qq($message<br/>\n); }
   unless ($convertGeneToId) { foreach my $name (@names) { $geneNameToId{lc($name)} = $name; $geneIdToName{$name} = $name; } }
-  my @invalidGene; my @nodataGene; my @goodGene; 
+  my @invalidGene; my %nodataGene; my %goodGene; 
   foreach my $name (@names) {
     my ($lcname) = lc($name);
     my $wbgene = '';
     if ($geneNameToId{$lcname}) {
         $wbgene = $geneNameToId{$lcname}; 
-        if ($dict{$wbgene}) { push @goodGene, $wbgene; }
-          else { push @nodataGene, $wbgene; } }
+        if ($dict{$wbgene}) { $goodGene{$wbgene}{$name}++; }
+          else { $nodataGene{$wbgene}{$name}++; } }
       else { push @invalidGene, $name; }
   } # foreach my $name (@names)
 
   my %anatomyTerms;
-  if (scalar @goodGene > 0) {
+  if (scalar (keys %goodGene) > 0) {
       my $outputHtml = '';
 #       if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Processing hgf"); print qq($message<br/>\n); }
       my $time = time;
@@ -191,7 +193,7 @@ sub anatomySoba {
       my $tempImageUrl = 'data/hyperGeo/hyperGeo' . $time . '.svg';
       open (TMP, ">$tempfile") or die "Cannot open $tempfile : $!";
 #       print TMP qq(gene,reads\n);
-      foreach my $gene (@goodGene) { print TMP qq($gene\n); }
+      foreach my $gene (sort keys %goodGene) { print TMP qq($gene\n); }
       close (TMP) or die "Cannot close $tempfile : $!";
       my $someVariable = $datatype; if ($someVariable eq 'anatomy') { $someVariable = 'tissue'; }
       my $hyperData = '';
@@ -258,17 +260,23 @@ sub anatomySoba {
     print qq(<textarea rows="6" cols="80">);
     foreach my $gene (@invalidGene) { print qq($gene\n); } 
     print qq(</textarea><br/><br/>); }
-  if (scalar @nodataGene > 0) {
-    my $countNodataGenes = scalar @nodataGene;
+  if (scalar(keys %nodataGene) > 0) {
+    my $countNodataGenes = scalar(keys %nodataGene);
     print qq(Your list has $countNodataGenes valid WormBase genes that have no annotated data or are excluded from testing :<br/>\n);
     print qq(<textarea rows="6" cols="80">);
-    foreach my $gene (@nodataGene) { print qq($gene - $geneIdToName{$gene}\n); } 
+    foreach my $gene (sort keys %nodataGene) {
+      my $names = join", ", sort keys %{ $nodataGene{$gene} };
+#       print qq($gene - $geneIdToName{$gene}\n);
+      print qq($gene - $names\n); } 
     print qq(</textarea><br/><br/>); }
-  if (scalar @goodGene > 0) {
-    my $countGoodGenes = scalar @goodGene;
+  if (scalar(keys %goodGene) > 0) {
+    my $countGoodGenes = scalar(keys %goodGene);
     print qq(Your list has $countGoodGenes valid WormBase genes included in statistical testing :<br/>\n);
     print qq(<textarea rows="6" cols="80">);
-    foreach my $gene (@goodGene) { print qq($gene - $geneIdToName{$gene}\n); } 
+    foreach my $gene (sort keys %goodGene) { 
+#       print qq($gene - $geneIdToName{$gene}\n);
+      my $names = join", ", sort keys %{ $goodGene{$gene} };
+      print qq($gene - $names\n); } 
     print qq(</textarea><br/><br/>); }
 #   print qq(<a href="tea.cgi?datatype=$datatype">perform another query</a><br/><br/><br/>);
   print qq(<a href="tea.cgi">perform another query</a><br/><br/><br/>);
