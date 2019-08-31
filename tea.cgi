@@ -218,28 +218,47 @@ sub anatomySoba {
       if (scalar @hyperData > 0) {
 #           print qq(<table><tr><th>$th</th></tr>\n);
           $outputHtml .= qq(<table border="1" style="border-spacing: 0;">);  
+          my @analyzePairs; 
           foreach my $line (@hyperData) {
             next if ($line =~ m/Executing script/);
             if ($line) {
+              my (@line) = split/\t/, $line;
+              my $qvalue = pop @line;
               print OUT qq($line\n);
               $line =~ s|\t|</td><td>|g;
               if ($line =~ m/(WBbt:\d+)/) { 
                  my $wbbt = $1;
+                 push @analyzePairs, qq($wbbt $qvalue);
                  my $url = 'http://www.wormbase.org/species/all/anatomy_term/' .$wbbt . '#013--10';
                  $line =~ s/$wbbt/<a href="$url" target="_blank">$wbbt<\/a>/; }
                elsif ($line =~ m/(GO:\d+)/) { 
                  my $go = $1;
+                 push @analyzePairs, qq($go $qvalue);
                  my $url = 'http://www.wormbase.org/species/all/go_term/' .$go . '#013--10';
                  $line =~ s/$go/<a href="$url" target="_blank">$go<\/a>/; }
                elsif ($line =~ m/(WBPhenotype:\d+)/) { 
                  my $wbphenotype = $1;
+                 push @analyzePairs, qq($wbphenotype $qvalue);
                  my $url = 'http://www.wormbase.org/species/all/phenotype/' .$wbphenotype . '#013--10';
                  $line =~ s/$wbphenotype/<a href="$url" target="_blank">$wbphenotype<\/a>/; }
               $outputHtml .= qq(<tr><td align="right">$line</td></tr>);
             }
           } # foreach my $line (@hyperData)
           $outputHtml .= qq(</table>);  
-        }
+          if (scalar @analyzePairs > 0) {
+            my $analyzePairsData = join"\n", @analyzePairs;
+            my $objectsQvalue = join"%0D%0A", @analyzePairs;			# join with url escape linebreak
+            $outputHtml .= qq(<iframe src="http://wobr2.caltech.edu/~azurebrd/cgi-bin/soba_multi.cgi?objectsQvalue=${objectsQvalue}&filterForLcaFlag=1&filterLongestFlag=1&showControlsFlag=0&action=Analyze+Pairs" width="1270px" height="1070px"></iframe>);
+# form button to link to soba instead of embedding with iframe
+#             $outputHtml .= qq(<form method="get" action="/~azurebrd/cgi-bin/soba_multi.cgi">);
+#             $outputHtml .= qq(<textarea rows="8" cols="80" name="objectsQvalue" id="objectsQvalue">$analyzePairsData</textarea>);
+#             $outputHtml .= qq(<input type="hidden" name="filterForLcaFlag" id="filterForLcaFlag" value="1">);
+#             $outputHtml .= qq(<input type="hidden" name="filterLongestFlag" id="filterLongestFlag" value="1">);
+#             $outputHtml .= qq(<input type="hidden" name="showControlsFlag" id="showControlsFlag" value="0">);
+#             $outputHtml .= qq(<input type="submit" name="action" id="analyzePairsButton" value="Analyze Pairs"><br/><br/><br/>);
+#             $outputHtml .= qq(</form>); 
+          } # if (scalar @analyzePairs > 0)
+        } # if (scalar @hyperData > 0)
         else { $outputHtml .= qq(No significantly enriched cell/tissue has been found.<br/>\n); }
       close (OUT) or die "Cannot close $tempOutFile : $!";
       $outputHtml .= qq(<br/><br/>Return up to 15 most significant $datatype terms.<br/>);
