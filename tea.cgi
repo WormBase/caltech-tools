@@ -71,7 +71,7 @@ sub anatomySobaInput {
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
   print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/>);
-  print qq(q value threshold : <input type="input" name="qvalueThreshold" id="qvalueThreshold" value="0.2"><br/><br/><br/>);
+  print qq(q value threshold : <input type="input" name="qvalueThreshold" id="qvalueThreshold" value="0.1"><br/><br/><br/>);
   print qq(</td><td valign="top"><p>or</p><br/>\n);
   print qq(</td><td valign="top">);
   print qq(Upload a file with gene names<br/>);
