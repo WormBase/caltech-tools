@@ -154,7 +154,8 @@ sub anatomySoba {
 #   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Loading dictionary"); print qq($message<br/>\n); }
 
   ($var, my $qvalueThreshold)          = &getHtmlVar($query, 'qvalueThreshold');
-  unless ($qvalueThreshold) { $qvalueThreshold = 0.2; }
+  unless ($qvalueThreshold) {   $qvalueThreshold = 0.2; }
+  if ($qvalueThreshold > 0.2) { $qvalueThreshold = 0.2; }
 
   my %dict;
   my $dictFile = '/home/raymond/local/src/git/dictionary_generator/' . $datatype . '_dict.csv';
