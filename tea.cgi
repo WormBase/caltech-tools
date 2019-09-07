@@ -5,6 +5,8 @@
 # integrated different dictionary and text for phenotype and go terms.  2017 02 09
 #
 # filter user input genes by wbgene and display all user inputs with them.  2018 07 20
+#
+# allow a qvalue threshold for users to limit the highest q value of terms returned.  2019 09 06
 
 
 use CGI;
@@ -68,7 +70,8 @@ sub anatomySobaInput {
   print qq(<textarea name="genelist" placeholder="eat-4 ZK512.6 WBGene00001135" rows="20" cols="60" onkeyup="if(this.value != '') { document.getElementById('geneNamesFile').disabled = 'disabled'; document.getElementById('analyzeFileButton').disabled = 'disabled'; } else { document.getElementById('geneNamesFile').disabled = ''; document.getElementById('analyzeFileButton').disabled = ''; }"></textarea><br/>);
 #   print qq(<input Type="checkbox" name="showProcessTimes" Value="showProcessTimes">Show Process Times<br/>\n);
 #   print qq(<input Type="checkbox" name="convertGeneToId" Value="convertGeneToId">Convert Genes to IDs<br/>\n);	# don't need this anymore, will figure out whether it needs to convert based on whether any non-WBGene IDs are in the input
-  print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/><br/><br/>);
+  print qq(<input type="submit" name="action" id="analyzeListButton" value="Analyze List"><br/>);
+  print qq(q value threshold : <input type="input" name="qvalueThreshold" id="qvalueThreshold" value="0.2"><br/><br/><br/>);
   print qq(</td><td valign="top"><p>or</p><br/>\n);
   print qq(</td><td valign="top">);
   print qq(Upload a file with gene names<br/>);
@@ -150,6 +153,9 @@ sub anatomySoba {
 
 #   if ($showProcessTimes) { (my $message) = &getDiffTime($startTime, $prevTime, "Loading dictionary"); print qq($message<br/>\n); }
 
+  ($var, my $qvalueThreshold)          = &getHtmlVar($query, 'qvalueThreshold');
+  unless ($qvalueThreshold) { $qvalueThreshold = 0.2; }
+
   my %dict;
   my $dictFile = '/home/raymond/local/src/git/dictionary_generator/' . $datatype . '_dict.csv';
   open (DICT, "<$dictFile") or die "Cannot open $dictFile : $!";
@@ -201,11 +207,11 @@ sub anatomySoba {
           open (BG, ">$tempBgFile") or die "Cannot open $tempBgFile : $!";
           print BG $backgroundList;
           close (BG) or die "Cannot close $tempBgFile : $!";
-#           print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile -b $tempBgFile);
-          $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile -b $tempBgFile`; }
+          print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile -b $tempBgFile);
+          $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile -b $tempBgFile`; }
         else {
-#           print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile);
-          $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -p -s -m $tempMeltFile`; }
+          print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile);
+          $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile`; }
 
 #       `rm $tempfile`;
 # print qq(HPD $hyperData HPD<br/>);
@@ -248,7 +254,7 @@ sub anatomySoba {
           if (scalar @analyzePairs > 0) {
             my $analyzePairsData = join"\n", @analyzePairs;
             my $objectsQvalue = join"%0D%0A", @analyzePairs;			# join with url escape linebreak
-            $outputHtml .= qq(<iframe src="http://wobr2.caltech.edu/~azurebrd/cgi-bin/soba_multi.cgi?objectsQvalue=${objectsQvalue}&filterForLcaFlag=1&filterLongestFlag=1&showControlsFlag=0&action=Analyze+Pairs" width="1270px" height="1070px"></iframe>);
+            $outputHtml .= qq(<iframe src="https://wobr.caltech.edu/~azurebrd/cgi-bin/soba_multi.cgi?objectsQvalue=${objectsQvalue}&filterForLcaFlag=1&filterLongestFlag=1&showControlsFlag=0&action=Analyze+Pairs" width="1270px" height="1070px"></iframe>);
 # form button to link to soba instead of embedding with iframe
 #             $outputHtml .= qq(<form method="get" action="/~azurebrd/cgi-bin/soba_multi.cgi">);
 #             $outputHtml .= qq(<textarea rows="8" cols="80" name="objectsQvalue" id="objectsQvalue">$analyzePairsData</textarea>);
