@@ -208,10 +208,10 @@ sub anatomySoba {
           open (BG, ">$tempBgFile") or die "Cannot open $tempBgFile : $!";
           print BG $backgroundList;
           close (BG) or die "Cannot close $tempBgFile : $!";
-          print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile -b $tempBgFile);
+#           print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile -b $tempBgFile);
           $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile -b $tempBgFile`; }
         else {
-          print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile);
+#           print qq(/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile);
           $hyperData = `/home/raymond/local/src/git/TissueEnrichmentAnalysis/bin/tea  -d /home/raymond/local/src/git/dictionary_generator/${datatype}_dict.csv  $tempfile "$tempfile" $someVariable -q $qvalueThreshold -p -s -m $tempMeltFile`; }
 
 #       `rm $tempfile`;
