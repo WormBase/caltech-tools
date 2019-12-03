@@ -255,7 +255,8 @@ sub anatomySoba {
           if (scalar @analyzePairs > 0) {
             my $analyzePairsData = join"\n", @analyzePairs;
             my $objectsQvalue = join"%0D%0A", @analyzePairs;			# join with url escape linebreak
-            $outputHtml .= qq(<iframe src="https://wobr.caltech.edu/~azurebrd/cgi-bin/soba_multi.cgi?objectsQvalue=${objectsQvalue}&filterForLcaFlag=1&filterLongestFlag=1&showControlsFlag=0&action=Analyze+Pairs" width="1270px" height="1070px"></iframe>);
+#             $outputHtml .= qq(<iframe src="https://wobr.caltech.edu/~azurebrd/cgi-bin/soba_multi.cgi?objectsQvalue=${objectsQvalue}&filterForLcaFlag=1&filterLongestFlag=1&showControlsFlag=0&action=Analyze+Pairs" width="1270px" height="1070px"></iframe>);
+            $outputHtml .= qq(<iframe src="https://wobr.caltech.edu/~azurebrd/cgi-bin/soba.cgi?wormbaseHeader=false&objectsQvalue=${objectsQvalue}&filterForLcaFlag=1&filterLongestFlag=1&showControlsFlag=0&action=Analyze+Terms" width="1270px" height="1070px"></iframe>);
 # form button to link to soba instead of embedding with iframe
 #             $outputHtml .= qq(<form method="get" action="/~azurebrd/cgi-bin/soba_multi.cgi">);
 #             $outputHtml .= qq(<textarea rows="8" cols="80" name="objectsQvalue" id="objectsQvalue">$analyzePairsData</textarea>);
