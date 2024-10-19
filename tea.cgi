@@ -7,6 +7,10 @@
 # filter user input genes by wbgene and display all user inputs with them.  2018 07 20
 #
 # allow a qvalue threshold for users to limit the highest q value of terms returned.  2019 09 06
+#
+# get header and footer from caltech curation prod instead of tazendra.  then convert the .css link to a static
+# version on caltech curation prod.  this might eventually break, if wormbase changes the name of the file, and
+# a cronjob updates the header.  2024 10 18
 
 
 use CGI;
@@ -386,13 +390,15 @@ sub untaint {
 sub cshlNew {
   my $title = shift;
   unless ($title) { $title = ''; }      # init title in case blank
-  my $page = get "http://tazendra.caltech.edu/~azurebrd/sanger/wormbaseheader/WB_header_footer.html";
+#   my $page = get "http://tazendra.caltech.edu/~azurebrd/sanger/wormbaseheader/WB_header_footer.html";
+  my $page = get "https://caltech-curation.textpressolab.com/files/pub/wormbaseheader/WB_header_footer.html";
 #  $page =~ s/href="\//href="http:\/\/www.wormbase.org\//g;
 #  $page =~ s/src="/src="http:\/\/www.wormbase.org/g;
   ($header, $footer) = $page =~ m/^(.*?)\s+DIVIDER\s+(.*?)$/s;  # 2006 11 20    # get this from tazendra's script result.
 #   $header =~ s/WormBase - Home Page/$title/g;                 # 2015 05 07    # wormbase 2.0
 #   $header =~ s/WS2../WS256/g; # Dictionary freeze for P/GEA paper review process
   $header =~ s/<title>.*?<\/title>/<title>$title<\/title>/g;
+  $header =~ s|https://www.wormbase.org/static/css/main.min.css|https://caltech-curation.textpressolab.com/files/pub/wormbaseheader/wormbase.css|g;
   return ($header, $footer);
 } # sub cshlNew
 
