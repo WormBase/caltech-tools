@@ -11,6 +11,9 @@
 # get header and footer from caltech curation prod instead of tazendra.  then convert the .css link to a static
 # version on caltech curation prod.  this might eventually break, if wormbase changes the name of the file, and
 # a cronjob updates the header.  2024 10 18
+#
+# the css version on caltech curation prod was a different css.  Downloaded the one being currently used and 
+# swapping for that.  2024 10 19
 
 
 use CGI;
@@ -398,7 +401,7 @@ sub cshlNew {
 #   $header =~ s/WormBase - Home Page/$title/g;                 # 2015 05 07    # wormbase 2.0
 #   $header =~ s/WS2../WS256/g; # Dictionary freeze for P/GEA paper review process
   $header =~ s/<title>.*?<\/title>/<title>$title<\/title>/g;
-  $header =~ s|https://www.wormbase.org/static/css/main.min.css|https://caltech-curation.textpressolab.com/files/pub/wormbaseheader/wormbase.css|g;
+  $header =~ s|https://www.wormbase.org/static/css/main.min.css|https://caltech-curation.textpressolab.com/files/pub/wormbaseheader/wormbase.main.min.css|g;
   return ($header, $footer);
 } # sub cshlNew
 
