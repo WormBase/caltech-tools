@@ -1,11 +1,18 @@
 #!/usr/bin/perl
 
 # generate mapping of wbgenes to their possible names, with same names to different genes in reverse priority in @tables.  2015 15 16
+#
+# tazendra moved from kerkhoff to chen, which broke the db connection by ip address.  Changed to the Chen IP address, even
+# though tazendra probably not updating gene data anymore.  Tested that can connect to dockerized prod, but that needs a 
+# user/pass that we shouldn't save in the script, so emailing with raymond about how we should proceed.  2024 10 21
 
 use strict;
 use warnings;
 use DBI;
-my $dbh = DBI->connect ( "dbi:Pg:dbname=testdb;host=131.215.52.76", "", "") or die "Cannot connect to database!\n";     # for remote access
+
+# my $dbh = DBI->connect ( "dbi:Pg:dbname=caltech_curation;host=caltech-curation.textpressolab.com", "<user>", "<pass>") or die "Cannot connect to database!\n";     # tazendra moved to caltech dockerized prod, which requires postgres user/pass that are not getting committed on the script
+my $dbh = DBI->connect ( "dbi:Pg:dbname=testdb;host=131.215.76.22", "", "") or die "Cannot connect to database!\n";     # tazendra moved to Chen
+# my $dbh = DBI->connect ( "dbi:Pg:dbname=testdb;host=131.215.52.76", "", "") or die "Cannot connect to database!\n";     # for remote access tazendra Kerckhoff
 # my $dbh = DBI->connect ( "dbi:Pg:dbname=wobrdb", "", "") or die "Cannot connect to database!\n";
 my $result;
 
